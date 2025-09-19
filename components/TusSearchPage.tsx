@@ -109,9 +109,19 @@ function TusSearchPageContent() {
   const { data: facets, isLoading: facetsLoading } = useQuery<Facets>({
     queryKey: ['facets'],
     queryFn: async () => {
+      console.log('🚀 Frontend: Fetching facets...');
       const response = await fetch('/api/facets');
-      if (!response.ok) throw new Error('Failed to fetch facets');
-      return response.json();
+      console.log('📊 Frontend: Facets response status:', response.status);
+      if (!response.ok) {
+        console.error('❌ Frontend: Facets fetch failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch facets');
+      }
+      const data = await response.json();
+      console.log('✅ Frontend: Facets data received:', { 
+        sehirCount: data.sehir?.length, 
+        bransCount: data.brans?.length 
+      });
+      return data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
@@ -137,6 +147,9 @@ function TusSearchPageContent() {
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
       params.append('sortOrder', filters.sortOrder);
 
+      console.log('🔍 Frontend: Searching with filters:', JSON.stringify(filters, null, 2));
+      console.log('🔗 Frontend: Search URL:', `/api/search-multi-period?${params.toString()}`);
+      
       const response = await fetch(`/api/search-multi-period?${params.toString()}`, {
         signal, // Request cancellation support
         headers: {
@@ -144,12 +157,24 @@ function TusSearchPageContent() {
           'Cache-Control': 'no-cache',
         },
       });
-      if (!response.ok) throw new Error('Failed to fetch search results');
-      return response.json();
+      
+      console.log('📊 Frontend: Search response status:', response.status);
+      if (!response.ok) {
+        console.error('❌ Frontend: Search fetch failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch search results');
+      }
+      
+      const data = await response.json();
+      console.log('✅ Frontend: Search data received:', { 
+        totalCount: data.total, 
+        resultsCount: data.rows?.length,
+        periodsCount: data.periods?.length 
+      });
+      return data;
     },
     enabled: !!facets, // Only run after facets are loaded
-    staleTime: 15 * 1000, // 15 seconds (reduced for fresher data)
-    cacheTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always consider data stale for immediate filtering
+    cacheTime: 1 * 60 * 1000, // 1 minute cache
     keepPreviousData: true, // Keep previous data while loading new data
     refetchOnWindowFocus: false, // Don't refetch on window focus
     retry: 1, // Only retry once on failure
@@ -179,14 +204,19 @@ function TusSearchPageContent() {
 
   // Update filters and URL with optimized state management
   const updateFilters = useCallback((updates: Partial<SearchFilters>) => {
+    console.log('🔧 Frontend: Updating filters:', JSON.stringify(updates, null, 2));
+    console.log('🔧 Frontend: Current filters before update:', JSON.stringify(filters, null, 2));
+    
     // Handle search term separately for debouncing
     if (updates.q !== undefined) {
       setSearchTerm(updates.q);
+      console.log('🔍 Frontend: Search term updated, debouncing...');
       // Don't update URL immediately for search, let debouncing handle it
       return;
     }
     
     const newFilters = { ...filters, ...updates, page: 1 }; // Reset to page 1 when filters change
+    console.log('🔧 Frontend: New filters after update:', JSON.stringify(newFilters, null, 2));
     updateURL(newFilters);
   }, [filters, updateURL]);
 
