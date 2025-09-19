@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FacetGroup } from './FacetGroup';
@@ -56,7 +56,7 @@ interface SearchFilters {
   sortOrder: 'asc' | 'desc';
 }
 
-export default function TusSearchPage() {
+function TusSearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showFilters, setShowFilters] = useState(true);
@@ -449,5 +449,13 @@ export default function TusSearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TusSearchPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+      <TusSearchPageContent />
+    </Suspense>
   );
 }
