@@ -2,21 +2,16 @@ import { NextRequest } from 'next/server';
 import { sql } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { hastaneler, tusPuanlar } from '@/db/schema';
-import { validateApiKey, createUnauthorizedResponse, isRateLimited, getRealIP } from '@/lib/auth';
 
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
-  // Rate limiting
-  const ip = getRealIP(request);
-  if (isRateLimited(ip)) {
-    return Response.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429 }
-    );
-  }
+  console.log('🚀 Facets API called');
+  console.log('📊 Database URL exists:', !!process.env.TURSO_DATABASE_URL);
+  console.log('🔑 Auth token exists:', !!process.env.TURSO_AUTH_TOKEN);
   
   try {
+    console.log('📊 Starting database queries...');
     // Get distinct values for categorical facets
     const [sehirResult, tipResult, kurumTipiResult, bransResult, donemResult] = await Promise.all([
       db.select({ value: hastaneler.sehir })
@@ -72,6 +67,12 @@ export async function GET(request: NextRequest) {
         },
       },
     };
+    
+    console.log('✅ Facets data prepared:', {
+      sehirCount: facets.sehir.length,
+      bransCount: facets.brans.length,
+      donemCount: facets.donem.length
+    });
     
     return Response.json(facets, {
       headers: {

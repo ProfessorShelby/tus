@@ -24,14 +24,9 @@ const searchParamsSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  // Rate limiting
-  const ip = getRealIP(request);
-  if (isRateLimited(ip)) {
-    return Response.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429 }
-    );
-  }
+  console.log('🔍 Multi-period search API called');
+  console.log('📊 Database URL exists:', !!process.env.TURSO_DATABASE_URL);
+  console.log('🔑 Auth token exists:', !!process.env.TURSO_AUTH_TOKEN);
   
   try {
     const { searchParams } = new URL(request.url);
@@ -49,6 +44,7 @@ export async function GET(request: NextRequest) {
     }
     
     const params = searchParamsSchema.parse(rawParams);
+    console.log('📝 Search params:', JSON.stringify(params));
     
     // Get the latest 4 periods
     const periodsResult = await db
@@ -233,6 +229,12 @@ export async function GET(request: NextRequest) {
       pageSize: params.pageSize,
       totalPages: Math.ceil(totalCount / params.pageSize),
     };
+    
+    console.log('✅ Multi-period response prepared:', {
+      totalCount,
+      resultsCount: results.length,
+      periodsCount: periods.length
+    });
     
     return Response.json(response, {
       headers: {

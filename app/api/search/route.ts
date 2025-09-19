@@ -3,19 +3,13 @@ import { and, or, like, gte, lte, eq, sql, desc, asc } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { hastaneler, tusPuanlar } from '@/db/schema';
 import { searchParamsSchema } from '@/lib/validations';
-import { validateApiKey, createUnauthorizedResponse, isRateLimited, getRealIP } from '@/lib/auth';
 
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
-  // Rate limiting
-  const ip = getRealIP(request);
-  if (isRateLimited(ip)) {
-    return Response.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429 }
-    );
-  }
+  console.log('🔍 Search API called');
+  console.log('📊 Database URL exists:', !!process.env.TURSO_DATABASE_URL);
+  console.log('🔑 Auth token exists:', !!process.env.TURSO_AUTH_TOKEN);
   
   try {
     const { searchParams } = new URL(request.url);
@@ -159,6 +153,12 @@ export async function GET(request: NextRequest) {
       pageSize: params.pageSize,
       totalPages: Math.ceil(count / params.pageSize),
     };
+    
+    console.log('✅ Search response prepared:', {
+      totalCount: count,
+      resultsCount: rows.length,
+      page: params.page
+    });
     
     return Response.json(response, {
       headers: {
