@@ -46,6 +46,7 @@ interface SearchFilters {
   tip: string[];
   kurumTipi: string[];
   brans: string[];
+  donem: string[];
   tabanMin?: number;
   tabanMax?: number;
   kontMin?: number;
@@ -94,6 +95,7 @@ function TusSearchPageContent() {
       tip: params.getAll('tip'),
       kurumTipi: params.getAll('kurumTipi'),
       brans: params.getAll('brans'),
+      donem: params.getAll('donem'),
       tabanMin: params.get('tabanMin') ? Number(params.get('tabanMin')) : undefined,
       tabanMax: params.get('tabanMax') ? Number(params.get('tabanMax')) : undefined,
       kontMin: params.get('kontMin') ? Number(params.get('kontMin')) : undefined,
@@ -122,6 +124,7 @@ function TusSearchPageContent() {
       tip: params.getAll('tip'),
       kurumTipi: params.getAll('kurumTipi'),
       brans: params.getAll('brans'),
+      donem: params.getAll('donem'),
       tabanMin: params.get('tabanMin') ? Number(params.get('tabanMin')) : undefined,
       tabanMax: params.get('tabanMax') ? Number(params.get('tabanMax')) : undefined,
       kontMin: params.get('kontMin') ? Number(params.get('kontMin')) : undefined,
@@ -152,7 +155,7 @@ function TusSearchPageContent() {
       return data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
   });
 
   // Fetch search results using multi-period endpoint with optimizations
@@ -166,6 +169,7 @@ function TusSearchPageContent() {
       filters.tip.forEach(t => params.append('tip', t));
       filters.kurumTipi.forEach(k => params.append('kurumTipi', k));
       filters.brans.forEach(b => params.append('brans', b));
+      filters.donem.forEach(d => params.append('donem', d));
       if (filters.tabanMin !== undefined) params.append('tabanMin', filters.tabanMin.toString());
       if (filters.tabanMax !== undefined) params.append('tabanMax', filters.tabanMax.toString());
       if (filters.kontMin !== undefined) params.append('kontMin', filters.kontMin.toString());
@@ -202,8 +206,8 @@ function TusSearchPageContent() {
     },
     enabled: !!facets, // Only run after facets are loaded
     staleTime: 0, // Always consider data stale for immediate filtering
-    cacheTime: 1 * 60 * 1000, // 1 minute cache
-    keepPreviousData: true, // Keep previous data while loading new data
+    gcTime: 1 * 60 * 1000, // 1 minute cache (previously cacheTime)
+    placeholderData: (previousData) => previousData, // Keep previous data while loading new data
     refetchOnWindowFocus: false, // Don't refetch on window focus
     retry: 1, // Only retry once on failure
   });
@@ -217,6 +221,7 @@ function TusSearchPageContent() {
     newFilters.tip.forEach(t => params.append('tip', t));
     newFilters.kurumTipi.forEach(k => params.append('kurumTipi', k));
     newFilters.brans.forEach(b => params.append('brans', b));
+    newFilters.donem.forEach(d => params.append('donem', d));
     if (newFilters.tabanMin !== undefined) params.append('tabanMin', newFilters.tabanMin.toString());
     if (newFilters.tabanMax !== undefined) params.append('tabanMax', newFilters.tabanMax.toString());
     if (newFilters.kontMin !== undefined) params.append('kontMin', newFilters.kontMin.toString());
@@ -298,7 +303,8 @@ function TusSearchPageContent() {
 
   // Export current results to CSV
   const exportToCSV = useCallback(() => {
-    if (!searchResults?.rows.length) return;
+    const typedResults = searchResults as MultiPeriodSearchResponse;
+    if (!typedResults?.rows?.length) return;
 
     const headers = [
       'Hastane/Kurum',
@@ -307,7 +313,7 @@ function TusSearchPageContent() {
       'Kurum Tipi',
       'Branş',
       'Kademe',
-      ...searchResults.periods.flatMap(period => [
+      ...(typedResults.periods || []).flatMap((period: string) => [
         `${period} Kontenjan`,
         `${period} Yerleşen`,
         `${period} Taban Puan`,
@@ -317,15 +323,15 @@ function TusSearchPageContent() {
 
     const csvContent = [
       headers.join(','),
-      ...searchResults.rows.map(row => [
+      ...(typedResults.rows || []).map((row: any) => [
         `"${row.hastaneAdi}"`,
         row.sehir,
         row.tip,
         `"${row.kurumTipi}"`,
         `"${row.brans}"`,
         row.kademe,
-        ...searchResults.periods.flatMap(period => {
-          const periodData = row.periods[period];
+        ...(typedResults.periods || []).flatMap((period: string) => {
+          const periodData = row.periods?.[period];
           return [
             periodData?.kontenjan || '',
             periodData?.yerlesen || '',
@@ -414,7 +420,7 @@ function TusSearchPageContent() {
                   <div className="space-y-4 min-w-0 h-96">
                     <FacetGroup
                       title="Şehir"
-                      values={facets.sehir}
+                      values={facets?.sehir || []}
                       selectedValues={filters.sehir}
                       onChange={(values) => updateFilters({ sehir: values })}
                       searchable
@@ -425,7 +431,7 @@ function TusSearchPageContent() {
                   <div className="space-y-4 min-w-0 h-96">
                     <FacetGroup
                       title="Hastane Tipi"
-                      values={facets.tip}
+                      values={facets?.tip || []}
                       selectedValues={filters.tip}
                       onChange={(values) => updateFilters({ tip: values })}
                     />
@@ -434,7 +440,7 @@ function TusSearchPageContent() {
                   <div className="space-y-4 min-w-0 h-96">
                     <FacetGroup
                       title="Kurum Tipi"
-                      values={facets.kurumTipi}
+                      values={facets?.kurumTipi || []}
                       selectedValues={filters.kurumTipi}
                       onChange={(values) => updateFilters({ kurumTipi: values })}
                     />
@@ -443,7 +449,7 @@ function TusSearchPageContent() {
                   <div className="space-y-4 min-w-0 h-96">
                     <FacetGroup
                       title="Branş"
-                      values={facets.brans}
+                      values={facets?.brans || []}
                       selectedValues={filters.brans}
                       onChange={(values) => updateFilters({ brans: values })}
                       searchable
@@ -470,12 +476,12 @@ function TusSearchPageContent() {
 
           {/* Results Table */}
             <MultiPeriodDataTable
-              data={searchResults?.rows || []}
-              periods={searchResults?.periods || []}
-              total={searchResults?.total || 0}
-              page={searchResults?.page || 1}
-              pageSize={searchResults?.pageSize || 50}
-              totalPages={searchResults?.totalPages || 1}
+              data={(searchResults as MultiPeriodSearchResponse)?.rows || []}
+              periods={(searchResults as MultiPeriodSearchResponse)?.periods || []}
+              total={(searchResults as MultiPeriodSearchResponse)?.total || 0}
+              page={(searchResults as MultiPeriodSearchResponse)?.page || 1}
+              pageSize={(searchResults as MultiPeriodSearchResponse)?.pageSize || 50}
+              totalPages={(searchResults as MultiPeriodSearchResponse)?.totalPages || 1}
               onPageChange={handlePageChange}
               onSort={handleSort}
               isLoading={searchLoading || isFetching}
