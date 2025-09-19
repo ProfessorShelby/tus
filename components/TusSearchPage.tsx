@@ -85,11 +85,11 @@ function TusSearchPageContent() {
     setDebouncedSearchTerm(urlSearchTerm);
   }, [searchParams]);
   
-  // Initialize filters from URL params with useMemo for performance
-  const filters = useMemo(() => {
+  // Use local state for filters instead of URL-dependent approach for instant updates
+  const [filters, setFilters] = useState<SearchFilters>(() => {
     const params = new URLSearchParams(searchParams.toString());
     return {
-      q: debouncedSearchTerm,
+      q: params.get('q') || '',
       sehir: params.getAll('sehir'),
       tip: params.getAll('tip'),
       kurumTipi: params.getAll('kurumTipi'),
@@ -103,6 +103,34 @@ function TusSearchPageContent() {
       sortBy: params.get('sortBy') || undefined,
       sortOrder: (params.get('sortOrder') as 'asc' | 'desc') || 'asc',
     };
+  });
+
+  // Sync filters with URL changes and debounced search term
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      q: debouncedSearchTerm
+    }));
+  }, [debouncedSearchTerm]);
+
+  // Sync filters with URL params when they change externally (browser back/forward)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    setFilters({
+      q: debouncedSearchTerm,
+      sehir: params.getAll('sehir'),
+      tip: params.getAll('tip'),
+      kurumTipi: params.getAll('kurumTipi'),
+      brans: params.getAll('brans'),
+      tabanMin: params.get('tabanMin') ? Number(params.get('tabanMin')) : undefined,
+      tabanMax: params.get('tabanMax') ? Number(params.get('tabanMax')) : undefined,
+      kontMin: params.get('kontMin') ? Number(params.get('kontMin')) : undefined,
+      kontMax: params.get('kontMax') ? Number(params.get('kontMax')) : undefined,
+      page: Number(params.get('page')) || 1,
+      pageSize: Number(params.get('pageSize')) || 50,
+      sortBy: params.get('sortBy') || undefined,
+      sortOrder: (params.get('sortOrder') as 'asc' | 'desc') || 'asc',
+    });
   }, [searchParams, debouncedSearchTerm]);
 
   // Fetch facets with caching
@@ -202,7 +230,7 @@ function TusSearchPageContent() {
     router.replace(url, { scroll: false });
   }, [router]);
 
-  // Update filters and URL with optimized state management
+  // Update filters with immediate local state change and URL sync
   const updateFilters = useCallback((updates: Partial<SearchFilters>) => {
     console.log('🔧 Frontend: Updating filters:', JSON.stringify(updates, null, 2));
     console.log('🔧 Frontend: Current filters before update:', JSON.stringify(filters, null, 2));
@@ -217,12 +245,17 @@ function TusSearchPageContent() {
     
     const newFilters = { ...filters, ...updates, page: 1 }; // Reset to page 1 when filters change
     console.log('🔧 Frontend: New filters after update:', JSON.stringify(newFilters, null, 2));
+    
+    // Update local state immediately for instant UI response
+    setFilters(newFilters);
+    // Also update URL for browser history
     updateURL(newFilters);
   }, [filters, updateURL]);
 
-  // Handle page changes with immediate URL update and scroll to top
+  // Handle page changes with immediate state and URL update and scroll to top
   const handlePageChange = useCallback((page: number) => {
     const newFilters = { ...filters, page };
+    setFilters(newFilters);
     updateURL(newFilters);
     
     // Scroll to top of the page
@@ -232,9 +265,10 @@ function TusSearchPageContent() {
     });
   }, [filters, updateURL]);
 
-  // Handle sorting with immediate URL update
+  // Handle sorting with immediate state and URL update
   const handleSort = useCallback((field: string, direction: 'asc' | 'desc') => {
     const newFilters = { ...filters, sortBy: field, sortOrder: direction, page: 1 };
+    setFilters(newFilters);
     updateURL(newFilters);
   }, [filters, updateURL]);
 
@@ -258,6 +292,7 @@ function TusSearchPageContent() {
     };
     setSearchTerm('');
     setDebouncedSearchTerm('');
+    setFilters(resetFiltersData);
     updateURL(resetFiltersData);
   }, [facets, updateURL]);
 
