@@ -22,7 +22,7 @@ export interface SearchResult {
   donem: string;
   kademe: string;
   kontenjan: number;
-  yerlesen: number;
+  yerlesen: number | null; // can be null for 2025/2
   tabanPuan: number | null;
   tavanPuan: number | null;
   tabanSiralamasi: number | null;
@@ -102,7 +102,7 @@ export function DataTable({
         <div className="text-center">
           <div className="font-medium">{info.getValue()}</div>
           <div className="text-xs text-gray-500">
-            Yerleşen: {info.row.original.yerlesen}
+            Yerleşen: {info.row.original.yerlesen !== null ? info.row.original.yerlesen : '--'}
           </div>
         </div>
       ),

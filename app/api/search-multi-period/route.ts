@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Parse and validate query parameters
     const rawParams: any = {};
     for (const [key, value] of searchParams.entries()) {
-      if (key.endsWith('[]') || ['sehir', 'tip', 'kurumTipi', 'brans', 'donem'].includes(key)) {
+      if (key.endsWith('[]') || ['sehir', 'tip', 'kurumTipi', 'brans', 'donem', 'kademe'].includes(key)) {
         const cleanKey = key.replace('[]', '');
         if (!rawParams[cleanKey]) rawParams[cleanKey] = [];
         rawParams[cleanKey].push(value);
@@ -97,12 +97,26 @@ export async function GET(request: NextRequest) {
       conditions.push(sql`${tusPuanlar.brans} IN ${params.brans}`);
     }
     
+    if (params.kademe?.length) {
+      console.log('🏛️ Adding kademe filter:', params.kademe);
+      conditions.push(sql`${tusPuanlar.kademe} IN ${params.kademe}`);
+    }
+    
     console.log('💥 Total conditions added:', conditions.length);
     
-    // Numeric range filters (only consider latest period for filtering)
-    if (params.tabanMin !== undefined || params.tabanMax !== undefined || params.kontMin !== undefined || params.kontMax !== undefined) {
-      const latestPeriod = periods[0];
-      conditions.push(eq(tusPuanlar.donem, latestPeriod));
+    // Numeric range filters 
+    if (params.tabanMin !== undefined || params.tabanMax !== undefined || params.siralamaMin !== undefined || params.siralamaMax !== undefined) {
+      // For sıralama filters, use 2025/1 (or latest period with ranking data)
+      // For taban puan filters, use latest period
+      let filterPeriod = periods[0]; // Default to latest period
+      
+      if (params.siralamaMin !== undefined || params.siralamaMax !== undefined) {
+        // Find the latest period that has ranking data (not 2025/2)
+        filterPeriod = periods.find(p => p !== '2025/2') || '2025/1';
+        console.log('🎯 Using period for sıralama filter:', filterPeriod);
+      }
+      
+      conditions.push(eq(tusPuanlar.donem, filterPeriod));
       
       if (params.tabanMin !== undefined) {
         conditions.push(gte(tusPuanlar.tabanPuan, params.tabanMin));
@@ -112,12 +126,12 @@ export async function GET(request: NextRequest) {
         conditions.push(lte(tusPuanlar.tabanPuan, params.tabanMax));
       }
       
-      if (params.kontMin !== undefined) {
-        conditions.push(gte(tusPuanlar.kontenjan, params.kontMin));
+      if (params.siralamaMin !== undefined) {
+        conditions.push(gte(tusPuanlar.tabanSiralamasi, params.siralamaMin));
       }
       
-      if (params.kontMax !== undefined) {
-        conditions.push(lte(tusPuanlar.kontenjan, params.kontMax));
+      if (params.siralamaMax !== undefined) {
+        conditions.push(lte(tusPuanlar.tabanSiralamasi, params.siralamaMax));
       }
     }
     

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Parse and validate query parameters
     const rawParams: any = {};
     for (const [key, value] of searchParams.entries()) {
-      if (key.endsWith('[]') || ['sehir', 'tip', 'kurumTipi', 'brans', 'donem'].includes(key)) {
+      if (key.endsWith('[]') || ['sehir', 'tip', 'kurumTipi', 'brans', 'donem', 'kademe'].includes(key)) {
         const cleanKey = key.replace('[]', '');
         if (!rawParams[cleanKey]) rawParams[cleanKey] = [];
         rawParams[cleanKey].push(value);
@@ -76,6 +76,10 @@ export async function GET(request: NextRequest) {
       conditions.push(inArray(tusPuanlar.donem, params.donem));
     }
     
+    if (params.kademe?.length) {
+      conditions.push(inArray(tusPuanlar.kademe, params.kademe));
+    }
+    
     // Numeric range filters
     if (params.tabanMin !== undefined) {
       conditions.push(gte(tusPuanlar.tabanPuan, params.tabanMin));
@@ -85,12 +89,16 @@ export async function GET(request: NextRequest) {
       conditions.push(lte(tusPuanlar.tabanPuan, params.tabanMax));
     }
     
-    if (params.kontMin !== undefined) {
-      conditions.push(gte(tusPuanlar.kontenjan, params.kontMin));
+    if (params.siralamaMin !== undefined) {
+      conditions.push(gte(tusPuanlar.tabanSiralamasi, params.siralamaMin));
+      // Also filter to periods that have ranking data
+      conditions.push(sql`${tusPuanlar.donem} != '2025/2'`);
     }
     
-    if (params.kontMax !== undefined) {
-      conditions.push(lte(tusPuanlar.kontenjan, params.kontMax));
+    if (params.siralamaMax !== undefined) {
+      conditions.push(lte(tusPuanlar.tabanSiralamasi, params.siralamaMax));
+      // Also filter to periods that have ranking data
+      conditions.push(sql`${tusPuanlar.donem} != '2025/2'`);
     }
     
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

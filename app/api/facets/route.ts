@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('📊 Starting database queries...');
     // Get distinct values for categorical facets
-    const [sehirResult, tipResult, kurumTipiResult, bransResult, donemResult] = await Promise.all([
+    const [sehirResult, tipResult, kurumTipiResult, bransResult, donemResult, kademeResult] = await Promise.all([
       db.select({ value: hastaneler.sehir })
         .from(hastaneler)
         .groupBy(hastaneler.sehir)
@@ -44,15 +44,20 @@ export async function GET(request: NextRequest) {
         .from(tusPuanlar)
         .groupBy(tusPuanlar.donem)
         .orderBy(tusPuanlar.donem),
+      
+      db.select({ value: tusPuanlar.kademe })
+        .from(tusPuanlar)
+        .groupBy(tusPuanlar.kademe)
+        .orderBy(tusPuanlar.kademe),
     ]);
     
     // Get numeric ranges
     const rangeResult = await db.select({
       tabanMin: sql<number>`MIN(${tusPuanlar.tabanPuan})`,
       tabanMax: sql<number>`MAX(${tusPuanlar.tabanPuan})`,
-      kontMin: sql<number>`MIN(${tusPuanlar.kontenjan})`,
-      kontMax: sql<number>`MAX(${tusPuanlar.kontenjan})`,
-    }).from(tusPuanlar).where(sql`${tusPuanlar.tabanPuan} IS NOT NULL`);
+      siralamaMin: sql<number>`MIN(${tusPuanlar.tabanSiralamasi})`,
+      siralamaMax: sql<number>`MAX(${tusPuanlar.tabanSiralamasi})`,
+    }).from(tusPuanlar).where(sql`${tusPuanlar.tabanPuan} IS NOT NULL AND ${tusPuanlar.donem} != '2025/2'`);
     
     const range = rangeResult[0];
     
@@ -62,14 +67,15 @@ export async function GET(request: NextRequest) {
       kurumTipi: kurumTipiResult.map(r => r.value).filter(Boolean),
       brans: bransResult.map(r => r.value).filter(Boolean),
       donem: donemResult.map(r => r.value).filter(Boolean),
+      kademe: kademeResult.map(r => r.value).filter(Boolean),
       ranges: {
         tabanPuan: {
           min: range?.tabanMin || 0,
           max: range?.tabanMax || 100,
         },
-        kontenjan: {
-          min: range?.kontMin || 0,
-          max: range?.kontMax || 1000,
+        siralama: {
+          min: range?.siralamaMin || 0,
+          max: range?.siralamaMax || 50000,
         },
       },
     };

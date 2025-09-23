@@ -9,10 +9,11 @@ export const searchParamsSchema = z.object({
   kurumTipi: z.array(z.string()).optional(),
   brans: z.array(z.string()).optional(),
   donem: z.array(z.string()).optional(),
+  kademe: z.array(z.string()).optional(),
   tabanMin: z.coerce.number().min(0).max(100).optional(),
   tabanMax: z.coerce.number().min(0).max(100).optional(),
-  kontMin: z.coerce.number().min(0).optional(),
-  kontMax: z.coerce.number().min(0).optional(),
+  siralamaMin: z.coerce.number().min(0).max(50000).optional(),
+  siralamaMax: z.coerce.number().min(0).max(50000).optional(),
   sortBy: z.string().optional().refine(
     (val) => {
       if (!val) return true; // Optional field
@@ -35,7 +36,7 @@ export const searchParamsSchema = z.object({
 export type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export const facetSchema = z.object({
-  field: z.enum(['sehir', 'tip', 'kurumTipi', 'brans', 'donem']).optional(),
+  field: z.enum(['sehir', 'tip', 'kurumTipi', 'brans', 'donem', 'kademe']).optional(),
 });
 
 export type FacetParams = z.infer<typeof facetSchema>;

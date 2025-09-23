@@ -23,8 +23,8 @@ export const tusPuanlar = sqliteTable('tus_puanlar', {
   donem: text('donem').notNull(), // 2024/1, 2024/2, etc.
   donemTarihi: text('donem_tarihi').notNull(),
   kontenjan: integer('kontenjan').notNull(),
-  yerlesen: integer('yerlesen').notNull(),
-  karsilanamayanKontenjan: integer('karsilanamayan_kontenjan').notNull(),
+  yerlesen: integer('yerlesen'), // can be null for latest period (2025/2)
+  karsilanamayanKontenjan: integer('karsilanamayan_kontenjan'), // can be null for latest period (2025/2)
   tabanPuan: real('taban_puan'), // can be null if '--'
   tavanPuan: real('tavan_puan'), // can be null
   tabanSiralamasi: integer('taban_siralamasi'), // can be null

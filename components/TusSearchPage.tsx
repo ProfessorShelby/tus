@@ -17,9 +17,10 @@ interface Facets {
   kurumTipi: string[];
   brans: string[];
   donem: string[];
+  kademe: string[];
   ranges: {
     tabanPuan: { min: number; max: number };
-    kontenjan: { min: number; max: number };
+    siralama: { min: number; max: number };
   };
 }
 
@@ -47,10 +48,11 @@ interface SearchFilters {
   kurumTipi: string[];
   brans: string[];
   donem: string[];
+  kademe: string[];
   tabanMin?: number;
   tabanMax?: number;
-  kontMin?: number;
-  kontMax?: number;
+  siralamaMin?: number;
+  siralamaMax?: number;
   page: number;
   pageSize: number;
   sortBy?: string;
@@ -96,10 +98,11 @@ function TusSearchPageContent() {
       kurumTipi: params.getAll('kurumTipi'),
       brans: params.getAll('brans'),
       donem: params.getAll('donem'),
+      kademe: params.getAll('kademe'),
       tabanMin: params.get('tabanMin') ? Number(params.get('tabanMin')) : undefined,
       tabanMax: params.get('tabanMax') ? Number(params.get('tabanMax')) : undefined,
-      kontMin: params.get('kontMin') ? Number(params.get('kontMin')) : undefined,
-      kontMax: params.get('kontMax') ? Number(params.get('kontMax')) : undefined,
+      siralamaMin: params.get('siralamaMin') ? Number(params.get('siralamaMin')) : undefined,
+      siralamaMax: params.get('siralamaMax') ? Number(params.get('siralamaMax')) : undefined,
       page: Number(params.get('page')) || 1,
       pageSize: Number(params.get('pageSize')) || 50,
       sortBy: params.get('sortBy') || undefined,
@@ -125,10 +128,11 @@ function TusSearchPageContent() {
       kurumTipi: params.getAll('kurumTipi'),
       brans: params.getAll('brans'),
       donem: params.getAll('donem'),
+      kademe: params.getAll('kademe'),
       tabanMin: params.get('tabanMin') ? Number(params.get('tabanMin')) : undefined,
       tabanMax: params.get('tabanMax') ? Number(params.get('tabanMax')) : undefined,
-      kontMin: params.get('kontMin') ? Number(params.get('kontMin')) : undefined,
-      kontMax: params.get('kontMax') ? Number(params.get('kontMax')) : undefined,
+      siralamaMin: params.get('siralamaMin') ? Number(params.get('siralamaMin')) : undefined,
+      siralamaMax: params.get('siralamaMax') ? Number(params.get('siralamaMax')) : undefined,
       page: Number(params.get('page')) || 1,
       pageSize: Number(params.get('pageSize')) || 50,
       sortBy: params.get('sortBy') || undefined,
@@ -172,10 +176,11 @@ function TusSearchPageContent() {
       filters.kurumTipi.forEach(k => params.append('kurumTipi', k));
       filters.brans.forEach(b => params.append('brans', b));
       filters.donem.forEach(d => params.append('donem', d));
+      filters.kademe.forEach(k => params.append('kademe', k));
       if (filters.tabanMin !== undefined) params.append('tabanMin', filters.tabanMin.toString());
       if (filters.tabanMax !== undefined) params.append('tabanMax', filters.tabanMax.toString());
-      if (filters.kontMin !== undefined) params.append('kontMin', filters.kontMin.toString());
-      if (filters.kontMax !== undefined) params.append('kontMax', filters.kontMax.toString());
+      if (filters.siralamaMin !== undefined) params.append('siralamaMin', filters.siralamaMin.toString());
+      if (filters.siralamaMax !== undefined) params.append('siralamaMax', filters.siralamaMax.toString());
       params.append('page', filters.page.toString());
       params.append('pageSize', filters.pageSize.toString());
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
@@ -227,8 +232,8 @@ function TusSearchPageContent() {
     newFilters.donem.forEach(d => params.append('donem', d));
     if (newFilters.tabanMin !== undefined) params.append('tabanMin', newFilters.tabanMin.toString());
     if (newFilters.tabanMax !== undefined) params.append('tabanMax', newFilters.tabanMax.toString());
-    if (newFilters.kontMin !== undefined) params.append('kontMin', newFilters.kontMin.toString());
-    if (newFilters.kontMax !== undefined) params.append('kontMax', newFilters.kontMax.toString());
+    if (newFilters.siralamaMin !== undefined) params.append('siralamaMin', newFilters.siralamaMin.toString());
+    if (newFilters.siralamaMax !== undefined) params.append('siralamaMax', newFilters.siralamaMax.toString());
     if (newFilters.page > 1) params.append('page', newFilters.page.toString());
     if (newFilters.pageSize !== 50) params.append('pageSize', newFilters.pageSize.toString());
     if (newFilters.sortBy) params.append('sortBy', newFilters.sortBy);
@@ -289,10 +294,11 @@ function TusSearchPageContent() {
       kurumTipi: [],
       brans: [],
       donem: [],
+      kademe: [],
       tabanMin: undefined, // Reset to undefined so full range is used
       tabanMax: undefined,
-      kontMin: undefined,
-      kontMax: undefined,
+      siralamaMin: undefined,
+      siralamaMax: undefined,
       page: 1,
       pageSize: 50,
       sortBy: undefined,
@@ -491,16 +497,15 @@ function TusSearchPageContent() {
                     />
                   </div>
 
-                  <div className="min-w-0">
+                  {/* Hastane Tipi and Kurum Tipi stacked vertically */}
+                  <div className="min-w-0 space-y-4">
                     <FacetGroup
                       title="Hastane Tipi"
                       values={facets?.tip || []}
                       selectedValues={filters.tip}
                       onChange={(values) => updateFilters({ tip: values })}
                     />
-                  </div>
-
-                  <div className="min-w-0">
+                    
                     <FacetGroup
                       title="Kurum Tipi"
                       values={facets?.kurumTipi || []}
@@ -517,6 +522,16 @@ function TusSearchPageContent() {
                       onChange={(values) => updateFilters({ brans: values })}
                       searchable
                       collapsible
+                    />
+                  </div>
+
+                  <div className="min-w-0">
+                    <FacetGroup
+                      title="Kontenjan Türü"
+                      values={facets?.kademe || []}
+                      selectedValues={filters.kademe}
+                      onChange={(values) => updateFilters({ kademe: values })}
+                      searchable
                     />
                   </div>
                 </div>
@@ -540,16 +555,16 @@ function TusSearchPageContent() {
                   />
                   
                   <RangeFilter
-                    title="Kontenjan"
-                    min={facets?.ranges.kontenjan.min || 0}
-                    max={facets?.ranges.kontenjan.max || 100}
+                    title="Sıralama"
+                    min={0}
+                    max={50000}
                     value={[
-                      filters.kontMin ?? facets?.ranges.kontenjan.min ?? 0,
-                      filters.kontMax ?? facets?.ranges.kontenjan.max ?? 100
+                      filters.siralamaMin ?? 0,
+                      filters.siralamaMax ?? 50000
                     ]}
                     onChange={([min, max]) => updateFilters({ 
-                      kontMin: min === (facets?.ranges.kontenjan.min ?? 0) ? undefined : min,
-                      kontMax: max === (facets?.ranges.kontenjan.max ?? 100) ? undefined : max 
+                      siralamaMin: min === 0 ? undefined : min,
+                      siralamaMax: max === 50000 ? undefined : max 
                     })}
                     step={1}
                     suffix=""

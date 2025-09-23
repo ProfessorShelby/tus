@@ -103,7 +103,7 @@ export function MultiPeriodDataTable({
           header: () => (
             <div className="text-center">
               <div className="font-medium text-xs">{period}</div>
-              <div className="text-xs text-gray-500">Kontenjan</div>
+              <div className="text-xs text-gray-500">Sıralama</div>
             </div>
           ),
           cell: (info) => {

@@ -127,7 +127,8 @@ async function importTusPuanlar() {
     const yerlesen = parseInt(yerlesenStr);
     const karsilanamayanKontenjan = parseInt(karsilanamayanKontenjantStr);
     
-    if (kurumKodu === null || kontenjan === null || yerlesen === null || karsilanamayanKontenjan === null) {
+    // Only require kurumKodu and kontenjan - yerlesen and karsilanamayanKontenjan can be null for 2025/2
+    if (kurumKodu === null || kontenjan === null) {
       continue;
     }
     
