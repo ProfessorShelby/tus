@@ -64,21 +64,25 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Categorical filters
+    // Categorical filters - using SQL for better compatibility
     if (params.sehir?.length) {
-      conditions.push(inArray(hastaneler.sehir, params.sehir));
+      console.log('🏙️ Adding sehir filter:', params.sehir);
+      conditions.push(sql`${hastaneler.sehir} IN ${params.sehir}`);
     }
     
     if (params.tip?.length) {
-      conditions.push(inArray(hastaneler.tip, params.tip));
+      console.log('🏥 Adding tip filter:', params.tip);
+      conditions.push(sql`${hastaneler.tip} IN ${params.tip}`);
     }
     
     if (params.kurumTipi?.length) {
-      conditions.push(inArray(hastaneler.kurumTipi, params.kurumTipi));
+      console.log('🏛️ Adding kurumTipi filter:', params.kurumTipi);
+      conditions.push(sql`${hastaneler.kurumTipi} IN ${params.kurumTipi}`);
     }
     
     if (params.brans?.length) {
-      conditions.push(inArray(tusPuanlar.brans, params.brans));
+      console.log('🩺 Adding brans filter:', params.brans);
+      conditions.push(sql`${tusPuanlar.brans} IN ${params.brans}`);
     }
     
     // Numeric range filters (only consider latest period for filtering)
@@ -143,7 +147,10 @@ export async function GET(request: NextRequest) {
       .innerJoin(hastaneler, eq(tusPuanlar.kurumKodu, hastaneler.kurumKodu));
     
     if (whereClause) {
+      console.log('🔍 Applying WHERE clause to query');
       uniqueCombinationsQuery.where(whereClause);
+    } else {
+      console.log('⚠️ No WHERE clause applied - returning all results');
     }
     
     const uniqueCombinations = await uniqueCombinationsQuery
