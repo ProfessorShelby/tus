@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
       .limit(4);
     
     const periods = periodsResult.map(p => p.donem);
+    console.log('🗓️ Available periods found:', periods);
+    console.log('🎯 Latest period for filtering:', periods[0]);
     
     // Build where conditions for the base data filtering
     const conditions = [];
@@ -104,6 +106,27 @@ export async function GET(request: NextRequest) {
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
     console.log('🔧 Filter conditions applied:', conditions.length);
     console.log('🎯 Where clause exists:', !!whereClause);
+    
+    // Debug: Check total records in latest period
+    if (periods.length > 0) {
+      const latestPeriodCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(tusPuanlar)
+        .where(eq(tusPuanlar.donem, periods[0]));
+      console.log(`📊 Total records in latest period (${periods[0]}):`, latestPeriodCount[0]?.count || 0);
+      
+      // Debug: Check range values in latest period
+      const rangeStats = await db
+        .select({
+          minTaban: sql<number>`MIN(${tusPuanlar.tabanPuan})`,
+          maxTaban: sql<number>`MAX(${tusPuanlar.tabanPuan})`,
+          minKont: sql<number>`MIN(${tusPuanlar.kontenjan})`,
+          maxKont: sql<number>`MAX(${tusPuanlar.kontenjan})`
+        })
+        .from(tusPuanlar)
+        .where(eq(tusPuanlar.donem, periods[0]));
+      console.log(`📈 Range stats for ${periods[0]}:`, rangeStats[0]);
+    }
     
     // Get unique hospital+branch combinations that match filters
     const uniqueCombinationsQuery = db
