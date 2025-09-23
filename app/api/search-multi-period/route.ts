@@ -5,7 +5,7 @@ import { hastaneler, tusPuanlar } from '@/db/schema';
 import { isRateLimited, getRealIP } from '@/lib/auth';
 import { searchParamsSchema } from '@/lib/validations';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   console.log('🔍 Multi-period search API called');
@@ -36,6 +36,8 @@ export async function GET(request: NextRequest) {
     
     const params = searchParamsSchema.parse(rawParams);
     console.log('📝 Search params:', JSON.stringify(params));
+    console.log('🌐 Raw URL searchParams:', request.url);
+    console.log('🔍 Raw params before parsing:', JSON.stringify(rawParams));
     
     // Get the latest 4 periods
     const periodsResult = await db

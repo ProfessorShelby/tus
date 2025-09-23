@@ -4,7 +4,7 @@ import { db } from '@/db/client';
 import { hastaneler, tusPuanlar } from '@/db/schema';
 import { searchParamsSchema } from '@/lib/validations';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   console.log('🔍 Search API called');
