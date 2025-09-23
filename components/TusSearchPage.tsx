@@ -141,7 +141,9 @@ function TusSearchPageContent() {
     queryKey: ['facets'],
     queryFn: async () => {
       console.log('🚀 Frontend: Fetching facets...');
-      const response = await fetch('/api/facets');
+      const response = await fetch('/api/facets', {
+        cache: 'no-store', // disable Next.js fetch cache
+      });
       console.log('📊 Frontend: Facets response status:', response.status);
       if (!response.ok) {
         console.error('❌ Frontend: Facets fetch failed:', response.status, response.statusText);
@@ -184,6 +186,7 @@ function TusSearchPageContent() {
       
       const response = await fetch(`/api/search-multi-period?${params.toString()}`, {
         signal, // Request cancellation support
+        cache: 'no-store', // disable Next.js fetch cache
         headers: {
           'Accept': 'application/json',
           'Cache-Control': 'no-cache',

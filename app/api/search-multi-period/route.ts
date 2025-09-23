@@ -4,10 +4,16 @@ import { db } from '@/db/client';
 import { hastaneler, tusPuanlar } from '@/db/schema';
 import { isRateLimited, getRealIP } from '@/lib/auth';
 import { searchParamsSchema } from '@/lib/validations';
+import { unstable_noStore as noStore } from 'next/cache';
 
+// Force runtime evaluation, no ISR, no cache
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
+  noStore(); // disable Next cache for this request
+  
   console.log('🔍 Multi-period search API called');
   console.log('📊 Database URL exists:', !!process.env.TURSO_DATABASE_URL);
   console.log('🔑 Auth token exists:', !!process.env.TURSO_AUTH_TOKEN);
@@ -272,7 +278,8 @@ export async function GET(request: NextRequest) {
     
     return Response.json(response, {
       headers: {
-        'Cache-Control': 'public, max-age=60, s-maxage=300',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
         'X-Total-Count': totalCount.toString(),
       },
     });
