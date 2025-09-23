@@ -3,25 +3,9 @@ import { and, or, like, gte, lte, eq, sql, desc, asc, inArray } from 'drizzle-or
 import { db } from '@/db/client';
 import { hastaneler, tusPuanlar } from '@/db/schema';
 import { isRateLimited, getRealIP } from '@/lib/auth';
-import { z } from 'zod';
+import { searchParamsSchema } from '@/lib/validations';
 
 export const runtime = 'edge';
-
-const searchParamsSchema = z.object({
-  q: z.string().optional(),
-  sehir: z.array(z.string()).optional().default([]),
-  tip: z.array(z.string()).optional().default([]),
-  kurumTipi: z.array(z.string()).optional().default([]),
-  brans: z.array(z.string()).optional().default([]),
-  tabanMin: z.number().optional(),
-  tabanMax: z.number().optional(),
-  kontMin: z.number().optional(),
-  kontMax: z.number().optional(),
-  page: z.number().default(1),
-  pageSize: z.number().min(1).max(100).default(20),
-  sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
-});
 
 export async function GET(request: NextRequest) {
   console.log('🔍 Multi-period search API called');
@@ -34,12 +18,19 @@ export async function GET(request: NextRequest) {
     // Parse and validate query parameters
     const rawParams: any = {};
     for (const [key, value] of searchParams.entries()) {
-      if (key.endsWith('[]') || ['sehir', 'tip', 'kurumTipi', 'brans'].includes(key)) {
+      if (key.endsWith('[]') || ['sehir', 'tip', 'kurumTipi', 'brans', 'donem'].includes(key)) {
         const cleanKey = key.replace('[]', '');
         if (!rawParams[cleanKey]) rawParams[cleanKey] = [];
         rawParams[cleanKey].push(value);
       } else {
-        rawParams[key] = value === '' ? undefined : (isNaN(Number(value)) ? value : Number(value));
+        // Handle empty strings and convert numbers properly
+        if (value === '' || value === 'undefined') {
+          rawParams[key] = undefined;
+        } else if (!isNaN(Number(value)) && value !== '') {
+          rawParams[key] = Number(value);
+        } else {
+          rawParams[key] = value;
+        }
       }
     }
     
@@ -109,6 +100,8 @@ export async function GET(request: NextRequest) {
     }
     
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    console.log('🔧 Filter conditions applied:', conditions.length);
+    console.log('🎯 Where clause exists:', !!whereClause);
     
     // Get unique hospital+branch combinations that match filters
     const uniqueCombinationsQuery = db

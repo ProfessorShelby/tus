@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { and, or, like, gte, lte, eq, sql, desc, asc } from 'drizzle-orm';
+import { and, or, like, gte, lte, eq, sql, desc, asc, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { hastaneler, tusPuanlar } from '@/db/schema';
 import { searchParamsSchema } from '@/lib/validations';
@@ -22,11 +22,19 @@ export async function GET(request: NextRequest) {
         if (!rawParams[cleanKey]) rawParams[cleanKey] = [];
         rawParams[cleanKey].push(value);
       } else {
-        rawParams[key] = value;
+        // Handle empty strings and convert numbers properly
+        if (value === '' || value === 'undefined') {
+          rawParams[key] = undefined;
+        } else if (!isNaN(Number(value)) && value !== '') {
+          rawParams[key] = Number(value);
+        } else {
+          rawParams[key] = value;
+        }
       }
     }
     
     const params = searchParamsSchema.parse(rawParams);
+    console.log('📝 Search params:', JSON.stringify(params));
     
     // Build where conditions
     const conditions = [];
@@ -43,23 +51,23 @@ export async function GET(request: NextRequest) {
     
     // Categorical filters
     if (params.sehir?.length) {
-      conditions.push(sql`${hastaneler.sehir} IN ${params.sehir}`);
+      conditions.push(inArray(hastaneler.sehir, params.sehir));
     }
     
     if (params.tip?.length) {
-      conditions.push(sql`${hastaneler.tip} IN ${params.tip}`);
+      conditions.push(inArray(hastaneler.tip, params.tip));
     }
     
     if (params.kurumTipi?.length) {
-      conditions.push(sql`${hastaneler.kurumTipi} IN ${params.kurumTipi}`);
+      conditions.push(inArray(hastaneler.kurumTipi, params.kurumTipi));
     }
     
     if (params.brans?.length) {
-      conditions.push(sql`${tusPuanlar.brans} IN ${params.brans}`);
+      conditions.push(inArray(tusPuanlar.brans, params.brans));
     }
     
     if (params.donem?.length) {
-      conditions.push(sql`${tusPuanlar.donem} IN ${params.donem}`);
+      conditions.push(inArray(tusPuanlar.donem, params.donem));
     }
     
     // Numeric range filters
@@ -80,6 +88,8 @@ export async function GET(request: NextRequest) {
     }
     
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    console.log('🔧 Filter conditions applied:', conditions.length);
+    console.log('🎯 Where clause exists:', !!whereClause);
     
     // Build order by clause
     let orderBy;
