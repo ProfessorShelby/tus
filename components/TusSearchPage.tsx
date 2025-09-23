@@ -479,8 +479,8 @@ function TusSearchPageContent() {
             {facets && (
               <>
                 {/* Categorical Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 items-start">
-                  <div className="space-y-4 min-w-0 h-96">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-3 md:mb-6 items-start">
+                  <div className="min-w-0">
                     <FacetGroup
                       title="Şehir"
                       values={facets?.sehir || []}
@@ -491,7 +491,7 @@ function TusSearchPageContent() {
                     />
                   </div>
 
-                  <div className="space-y-4 min-w-0 h-96">
+                  <div className="min-w-0">
                     <FacetGroup
                       title="Hastane Tipi"
                       values={facets?.tip || []}
@@ -500,7 +500,7 @@ function TusSearchPageContent() {
                     />
                   </div>
 
-                  <div className="space-y-4 min-w-0 h-96">
+                  <div className="min-w-0">
                     <FacetGroup
                       title="Kurum Tipi"
                       values={facets?.kurumTipi || []}
@@ -509,7 +509,7 @@ function TusSearchPageContent() {
                     />
                   </div>
 
-                  <div className="space-y-4 min-w-0 h-96">
+                  <div className="min-w-0">
                     <FacetGroup
                       title="Branş"
                       values={facets?.brans || []}
@@ -522,7 +522,7 @@ function TusSearchPageContent() {
                 </div>
 
                 {/* Range Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 mt-3 md:mt-6">
                   <RangeFilter
                     title="Taban Puan"
                     min={facets?.ranges.tabanPuan.min || 0}
