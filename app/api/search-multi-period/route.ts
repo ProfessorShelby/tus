@@ -65,6 +65,12 @@ export async function GET(request: NextRequest) {
     }
     
     // Categorical filters - using SQL for better compatibility
+    console.log('🔍 Checking filters...');
+    console.log('params.sehir:', params.sehir, 'length:', params.sehir?.length);
+    console.log('params.tip:', params.tip, 'length:', params.tip?.length);
+    console.log('params.kurumTipi:', params.kurumTipi, 'length:', params.kurumTipi?.length);
+    console.log('params.brans:', params.brans, 'length:', params.brans?.length);
+    
     if (params.sehir?.length) {
       console.log('🏙️ Adding sehir filter:', params.sehir);
       conditions.push(sql`${hastaneler.sehir} IN ${params.sehir}`);
@@ -84,6 +90,8 @@ export async function GET(request: NextRequest) {
       console.log('🩺 Adding brans filter:', params.brans);
       conditions.push(sql`${tusPuanlar.brans} IN ${params.brans}`);
     }
+    
+    console.log('💥 Total conditions added:', conditions.length);
     
     // Numeric range filters (only consider latest period for filtering)
     if (params.tabanMin !== undefined || params.tabanMax !== undefined || params.kontMin !== undefined || params.kontMax !== undefined) {
@@ -110,6 +118,7 @@ export async function GET(request: NextRequest) {
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
     console.log('🔧 Filter conditions applied:', conditions.length);
     console.log('🎯 Where clause exists:', !!whereClause);
+    console.log('📋 Conditions array:', conditions.map((c, i) => `[${i}]: ${c ? c.toString() : 'undefined'}`));
     
     // Debug: Check total records in latest period
     if (periods.length > 0) {

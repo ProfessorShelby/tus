@@ -1,0 +1,20 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Vancouver",
+			"country": {
+				"code": "CA",
+				"name": "Canada"
+			},
+			"subdivision": {
+				"code": "BC",
+				"name": "British Columbia"
+			},
+			"timezone": "America/Vancouver",
+			"latitude": 49.2825,
+			"longitude": -123.1291,
+			"postalCode": "V6E"
+		},
+		"timestamp": 1758652083610
+	}
+}
