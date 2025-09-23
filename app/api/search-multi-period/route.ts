@@ -185,6 +185,11 @@ export async function GET(request: NextRequest) {
         const sortDirection = params.sortOrder === 'desc' ? desc : asc;
         const sortConditions = whereClause ? and(whereClause, eq(tusPuanlar.donem, period)) : eq(tusPuanlar.donem, period);
         
+        // Custom ordering to put nulls at the end regardless of sort direction
+        const nullsLastOrder = params.sortOrder === 'desc' 
+          ? sql`${sortField} DESC NULLS LAST`
+          : sql`${sortField} ASC NULLS LAST`;
+        
         uniqueCombinations = await db
           .select({
             kurumKodu: hastaneler.kurumKodu,
@@ -200,7 +205,7 @@ export async function GET(request: NextRequest) {
           .innerJoin(hastaneler, eq(tusPuanlar.kurumKodu, hastaneler.kurumKodu))
           .where(sortConditions)
           .groupBy(hastaneler.kurumKodu, tusPuanlar.brans, tusPuanlar.kademe, sortField)
-          .orderBy(sortDirection(sortField));
+          .orderBy(nullsLastOrder);
       } else {
         // Fallback to default sorting
         uniqueCombinations = await uniqueCombinationsQuery

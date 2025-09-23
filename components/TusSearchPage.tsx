@@ -427,13 +427,13 @@ function TusSearchPageContent() {
                       const newSortBy = e.target.value || undefined;
                       updateFilters({ sortBy: newSortBy, sortOrder: 'asc' });
                     }}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                  >
-                    <option value="">Varsayılan</option>
-                    <optgroup label="Genel">
-                      <option value="hastaneAdi">Hastane Adı</option>
-                      <option value="sehir">Şehir</option>
-                      <option value="brans">Branş</option>
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
+                    >
+                      <option value="">Hastane Adı</option>
+                      <optgroup label="Genel">
+                        <option value="hastaneAdi">Hastane Adı</option>
+                        <option value="sehir">Şehir</option>
+                        <option value="brans">Branş</option>
                     </optgroup>
                     {searchResults && (searchResults as MultiPeriodSearchResponse)?.periods && (
                       <>

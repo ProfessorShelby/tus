@@ -126,10 +126,16 @@ export function MultiPeriodDataTable({
               </div>
             );
           },
-          sortingFn: (rowA, rowB) => {
-            const a = rowA.original.periods[period]?.kontenjan ?? -1;
-            const b = rowB.original.periods[period]?.kontenjan ?? -1;
-            return a - b;
+          sortingFn: (rowA, rowB, columnId) => {
+            const aValue = rowA.original.periods[period]?.kontenjan;
+            const bValue = rowB.original.periods[period]?.kontenjan;
+            
+            // Always put null values at the end regardless of sort direction
+            if (aValue === null && bValue === null) return 0;
+            if (aValue === null) return 1;
+            if (bValue === null) return -1;
+            
+            return aValue - bValue;
           },
         }
       )
@@ -161,10 +167,16 @@ export function MultiPeriodDataTable({
               </div>
             );
           },
-          sortingFn: (rowA, rowB) => {
-            const a = rowA.original.periods[period]?.tabanPuan ?? -1;
-            const b = rowB.original.periods[period]?.tabanPuan ?? -1;
-            return a - b;
+          sortingFn: (rowA, rowB, columnId) => {
+            const aValue = rowA.original.periods[period]?.tabanPuan;
+            const bValue = rowB.original.periods[period]?.tabanPuan;
+            
+            // Always put null values at the end regardless of sort direction
+            if (aValue === null && bValue === null) return 0;
+            if (aValue === null) return 1;
+            if (bValue === null) return -1;
+            
+            return aValue - bValue;
           },
         }
       )
@@ -196,10 +208,16 @@ export function MultiPeriodDataTable({
               </div>
             );
           },
-          sortingFn: (rowA, rowB) => {
-            const a = rowA.original.periods[period]?.tabanSiralamasi ?? Infinity;
-            const b = rowB.original.periods[period]?.tabanSiralamasi ?? Infinity;
-            return a - b;
+          sortingFn: (rowA, rowB, columnId) => {
+            const aValue = rowA.original.periods[period]?.tabanSiralamasi;
+            const bValue = rowB.original.periods[period]?.tabanSiralamasi;
+            
+            // Always put null values at the end regardless of sort direction
+            if (aValue === null && bValue === null) return 0;
+            if (aValue === null) return 1;
+            if (bValue === null) return -1;
+            
+            return aValue - bValue;
           },
         }
       )
