@@ -168,9 +168,63 @@ export async function GET(request: NextRequest) {
       console.log('⚠️ No WHERE clause applied - returning all results');
     }
     
-    const uniqueCombinations = await uniqueCombinationsQuery
-      .groupBy(hastaneler.kurumKodu, tusPuanlar.brans, tusPuanlar.kademe)
-      .orderBy(asc(hastaneler.hastaneAdi));
+    let uniqueCombinations;
+    
+    // Check if we need to sort by a specific period field
+    if (params.sortBy && params.sortBy.includes('-')) {
+      const [fieldType, period] = params.sortBy.split('-');
+      const sortField = fieldType === 'kontenjan' ? tusPuanlar.kontenjan :
+                       fieldType === 'puan' ? tusPuanlar.tabanPuan :
+                       fieldType === 'siralama' ? tusPuanlar.tabanSiralamasi :
+                       null;
+      
+      if (sortField && period) {
+        console.log(`🔄 Sorting by ${fieldType} for period ${period}`);
+        
+        // We need to join with the specific period data for sorting
+        const sortDirection = params.sortOrder === 'desc' ? desc : asc;
+        const sortConditions = whereClause ? and(whereClause, eq(tusPuanlar.donem, period)) : eq(tusPuanlar.donem, period);
+        
+        uniqueCombinations = await db
+          .select({
+            kurumKodu: hastaneler.kurumKodu,
+            hastaneAdi: hastaneler.hastaneAdi,
+            sehir: hastaneler.sehir,
+            tip: hastaneler.tip,
+            kurumTipi: hastaneler.kurumTipi,
+            brans: tusPuanlar.brans,
+            kademe: tusPuanlar.kademe,
+            sortValue: sortField,
+          })
+          .from(tusPuanlar)
+          .innerJoin(hastaneler, eq(tusPuanlar.kurumKodu, hastaneler.kurumKodu))
+          .where(sortConditions)
+          .groupBy(hastaneler.kurumKodu, tusPuanlar.brans, tusPuanlar.kademe, sortField)
+          .orderBy(sortDirection(sortField));
+      } else {
+        // Fallback to default sorting
+        uniqueCombinations = await uniqueCombinationsQuery
+          .groupBy(hastaneler.kurumKodu, tusPuanlar.brans, tusPuanlar.kademe)
+          .orderBy(asc(hastaneler.hastaneAdi));
+      }
+    } else {
+      // Default sorting for non-period fields  
+      let sortField;
+      if (params.sortBy === 'hastaneAdi') {
+        sortField = hastaneler.hastaneAdi;
+      } else if (params.sortBy === 'sehir') {
+        sortField = hastaneler.sehir;
+      } else if (params.sortBy === 'brans') {
+        sortField = tusPuanlar.brans;
+      } else {
+        sortField = hastaneler.hastaneAdi; // default
+      }
+      const sortDirection = params.sortOrder === 'desc' ? desc : asc;
+      
+      uniqueCombinations = await uniqueCombinationsQuery
+        .groupBy(hastaneler.kurumKodu, tusPuanlar.brans, tusPuanlar.kademe)
+        .orderBy(sortDirection(sortField));
+    }
     
     // Get total count of unique combinations
     const totalCount = uniqueCombinations.length;

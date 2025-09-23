@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface RangeFilterProps {
   title: string;
@@ -21,47 +21,92 @@ export function RangeFilter({
   step = 1,
   suffix = '',
 }: RangeFilterProps) {
-  const [localValue, setLocalValue] = useState(value);
+  // Current applied values (what's actually filtering)
+  const [appliedValue, setAppliedValue] = useState(value);
+  // Local working values (what user is editing)
+  const [workingValue, setWorkingValue] = useState(value);
+  // Input display values to allow temporary empty states
+  const [inputValues, setInputValues] = useState({
+    min: value[0].toString(),
+    max: value[1].toString()
+  });
 
   useEffect(() => {
-    setLocalValue(value);
+    setAppliedValue(value);
+    setWorkingValue(value);
+    setInputValues({
+      min: value[0].toString(),
+      max: value[1].toString()
+    });
   }, [value]);
 
-  const handleMinChange = (value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const clampedMin = Math.max(min, Math.min(numValue, localValue[1]));
-    const newValue: [number, number] = [clampedMin, localValue[1]];
-    setLocalValue(newValue);
+  const handleMinChange = (inputValue: string) => {
+    setInputValues(prev => ({ ...prev, min: inputValue }));
+    
+    // Update working value if valid number
+    if (inputValue !== '') {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        const clampedMin = Math.max(min, Math.min(numValue, workingValue[1]));
+        setWorkingValue([clampedMin, workingValue[1]]);
+      }
+    }
+  };
+
+  const handleMaxChange = (inputValue: string) => {
+    setInputValues(prev => ({ ...prev, max: inputValue }));
+    
+    // Update working value if valid number
+    if (inputValue !== '') {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        const clampedMax = Math.min(max, Math.max(numValue, workingValue[0]));
+        setWorkingValue([workingValue[0], clampedMax]);
+      }
+    }
+  };
+
+  // Handle when input loses focus (if empty, restore to current working value)
+  const handleMinBlur = () => {
+    if (inputValues.min === '') {
+      setInputValues(prev => ({ ...prev, min: workingValue[0].toString() }));
+    }
+  };
+
+  const handleMaxBlur = () => {
+    if (inputValues.max === '') {
+      setInputValues(prev => ({ ...prev, max: workingValue[1].toString() }));
+    }
+  };
+
+  // Apply the current working values (triggers API call)
+  const handleApply = () => {
+    const newValue: [number, number] = [workingValue[0], workingValue[1]];
+    setAppliedValue(newValue);
     onChange(newValue);
   };
 
-  const handleMaxChange = (value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const clampedMax = Math.min(max, Math.max(numValue, localValue[0]));
-    const newValue: [number, number] = [localValue[0], clampedMax];
-    setLocalValue(newValue);
-    onChange(newValue);
-  };
-
+  // Reset to full range (triggers API call)
   const handleReset = () => {
     const resetValue: [number, number] = [min, max];
-    setLocalValue(resetValue);
+    setAppliedValue(resetValue);
+    setWorkingValue(resetValue);
+    setInputValues({
+      min: min.toString(),
+      max: max.toString()
+    });
     onChange(resetValue);
   };
 
-  const isActive = localValue[0] !== min || localValue[1] !== max;
+  const isActive = appliedValue[0] !== min || appliedValue[1] !== max;
+  const hasChanges = workingValue[0] !== appliedValue[0] || workingValue[1] !== appliedValue[1];
 
   return (
     <div className="border border-gray-200 rounded-lg bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-medium text-gray-900">{title}</h3>
         {isActive && (
-          <button
-            onClick={handleReset}
-            className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-          >
-            Sıfırla
-          </button>
+          <span className="text-xs text-green-600 font-medium">Aktif</span>
         )}
       </div>
 
@@ -74,7 +119,7 @@ export function RangeFilter({
             </label>
             <input
               type="text"
-              value={localValue[0]}
+              value={inputValues.min}
               onChange={(e) => {
                 // Only allow positive numbers and decimal points
                 const value = e.target.value.replace(/[^0-9.]/g, '');
@@ -82,7 +127,8 @@ export function RangeFilter({
                   handleMinChange(value);
                 }
               }}
-              placeholder="Min"
+              onBlur={handleMinBlur}
+              placeholder={`Min (${min})`}
               style={{ color: '#000000' }}
               className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -93,7 +139,7 @@ export function RangeFilter({
             </label>
             <input
               type="text"
-              value={localValue[1]}
+              value={inputValues.max}
               onChange={(e) => {
                 // Only allow positive numbers and decimal points
                 const value = e.target.value.replace(/[^0-9.]/g, '');
@@ -101,17 +147,50 @@ export function RangeFilter({
                   handleMaxChange(value);
                 }
               }}
-              placeholder="Max"
+              onBlur={handleMaxBlur}
+              placeholder={`Max (${max})`}
               style={{ color: '#000000' }}
               className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
 
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleApply}
+            disabled={!hasChanges}
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded transition-colors ${
+              hasChanges
+                ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Uygula
+          </button>
+          <button
+            onClick={handleReset}
+            disabled={!isActive}
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded transition-colors ${
+              isActive
+                ? 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Sıfırla
+          </button>
+        </div>
 
         {/* Current range display */}
-        <div className="text-center text-sm text-gray-600">
-          {localValue[0]}{suffix} - {localValue[1]}{suffix}
+        <div className="text-center space-y-1">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Çalışma:</span> {workingValue[0]}{suffix} - {workingValue[1]}{suffix}
+          </div>
+          {isActive && (
+            <div className="text-xs text-green-600">
+              <span className="font-medium">Uygulanan:</span> {appliedValue[0]}{suffix} - {appliedValue[1]}{suffix}
+            </div>
+          )}
         </div>
       </div>
 

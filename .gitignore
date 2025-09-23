@@ -41,3 +41,5 @@ next-env.d.ts
 
 # data files (security)
 /data/*.csv
+# Local Netlify folder
+.netlify

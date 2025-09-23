@@ -289,10 +289,10 @@ function TusSearchPageContent() {
       kurumTipi: [],
       brans: [],
       donem: [],
-      tabanMin: facets?.ranges.tabanPuan.min,
-      tabanMax: facets?.ranges.tabanPuan.max,
-      kontMin: facets?.ranges.kontenjan.min,
-      kontMax: facets?.ranges.kontenjan.max,
+      tabanMin: undefined, // Reset to undefined so full range is used
+      tabanMax: undefined,
+      kontMin: undefined,
+      kontMax: undefined,
       page: 1,
       pageSize: 50,
       sortBy: undefined,
@@ -302,7 +302,7 @@ function TusSearchPageContent() {
     setDebouncedSearchTerm('');
     setFilters(resetFiltersData);
     updateURL(resetFiltersData);
-  }, [facets, updateURL]);
+  }, [updateURL]);
 
   // Export current results to CSV
   const exportToCSV = useCallback(() => {
@@ -404,15 +404,75 @@ function TusSearchPageContent() {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons and Sorting */}
             <div className="mb-6">
-              <div className="flex gap-2">
-                <button
-                  onClick={resetFilters}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
-                >
-                  Filtreleri Sıfırla
-                </button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex gap-2">
+                  <button
+                    onClick={resetFilters}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+                  >
+                    Filtreleri Sıfırla
+                  </button>
+                </div>
+                
+                {/* Sorting Dropdown */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Sıralama:
+                  </label>
+                  <select
+                    value={filters.sortBy || ''}
+                    onChange={(e) => {
+                      const newSortBy = e.target.value || undefined;
+                      updateFilters({ sortBy: newSortBy, sortOrder: 'asc' });
+                    }}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="">Varsayılan</option>
+                    <optgroup label="Genel">
+                      <option value="hastaneAdi">Hastane Adı</option>
+                      <option value="sehir">Şehir</option>
+                      <option value="brans">Branş</option>
+                    </optgroup>
+                    {searchResults && (searchResults as MultiPeriodSearchResponse)?.periods && (
+                      <>
+                        <optgroup label="Kontenjan">
+                          {(searchResults as MultiPeriodSearchResponse).periods.map((period) => (
+                            <option key={`kontenjan-${period}`} value={`kontenjan-${period}`}>
+                              Kontenjan {period}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Taban Puan">
+                          {(searchResults as MultiPeriodSearchResponse).periods.map((period) => (
+                            <option key={`puan-${period}`} value={`puan-${period}`}>
+                              Taban Puan {period}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Sıralama">
+                          {(searchResults as MultiPeriodSearchResponse).periods.map((period) => (
+                            <option key={`siralama-${period}`} value={`siralama-${period}`}>
+                              Sıralama {period}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </>
+                    )}
+                  </select>
+                  
+                  {filters.sortBy && (
+                    <button
+                      onClick={() => updateFilters({ 
+                        sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc' 
+                      })}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
+                    >
+                      {filters.sortOrder === 'asc' ? '↑ Artan' : '↓ Azalan'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -459,6 +519,41 @@ function TusSearchPageContent() {
                       collapsible
                     />
                   </div>
+                </div>
+
+                {/* Range Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                  <RangeFilter
+                    title="Taban Puan"
+                    min={facets?.ranges.tabanPuan.min || 0}
+                    max={facets?.ranges.tabanPuan.max || 100}
+                    value={[
+                      filters.tabanMin ?? facets?.ranges.tabanPuan.min ?? 0,
+                      filters.tabanMax ?? facets?.ranges.tabanPuan.max ?? 100
+                    ]}
+                    onChange={([min, max]) => updateFilters({ 
+                      tabanMin: min === (facets?.ranges.tabanPuan.min ?? 0) ? undefined : min,
+                      tabanMax: max === (facets?.ranges.tabanPuan.max ?? 100) ? undefined : max 
+                    })}
+                    step={0.01}
+                    suffix=""
+                  />
+                  
+                  <RangeFilter
+                    title="Kontenjan"
+                    min={facets?.ranges.kontenjan.min || 0}
+                    max={facets?.ranges.kontenjan.max || 100}
+                    value={[
+                      filters.kontMin ?? facets?.ranges.kontenjan.min ?? 0,
+                      filters.kontMax ?? facets?.ranges.kontenjan.max ?? 100
+                    ]}
+                    onChange={([min, max]) => updateFilters({ 
+                      kontMin: min === (facets?.ranges.kontenjan.min ?? 0) ? undefined : min,
+                      kontMax: max === (facets?.ranges.kontenjan.max ?? 100) ? undefined : max 
+                    })}
+                    step={1}
+                    suffix=""
+                  />
                 </div>
 
               </>

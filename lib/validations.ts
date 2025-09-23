@@ -13,7 +13,22 @@ export const searchParamsSchema = z.object({
   tabanMax: z.coerce.number().min(0).max(100).optional(),
   kontMin: z.coerce.number().min(0).optional(),
   kontMax: z.coerce.number().min(0).optional(),
-  sortBy: z.enum(['hastaneAdi', 'sehir', 'brans', 'donem', 'tabanPuan', 'kontenjan']).optional(),
+  sortBy: z.string().optional().refine(
+    (val) => {
+      if (!val) return true; // Optional field
+      
+      // Allow basic field names
+      const basicFields = ['hastaneAdi', 'sehir', 'brans', 'donem', 'tabanPuan', 'kontenjan'];
+      if (basicFields.includes(val)) return true;
+      
+      // Allow period-specific patterns like "puan-2025/1", "kontenjan-2024/2", "siralama-2023/2"
+      const periodPattern = /^(kontenjan|puan|siralama)-\d{4}\/[12]$/;
+      return periodPattern.test(val);
+    },
+    {
+      message: "Invalid sortBy field. Must be a basic field or period-specific pattern like 'puan-2025/1'"
+    }
+  ),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 

@@ -96,89 +96,113 @@ export function MultiPeriodDataTable({
     }),
     // Dynamic columns for each period - Kontenjan
     ...periods.map((period) =>
-      columnHelper.display({
-        id: `kontenjan-${period}`,
-        header: () => (
-          <div className="text-center">
-            <div className="font-medium text-xs">{period}</div>
-            <div className="text-xs text-gray-500">Kontenjan</div>
-          </div>
-        ),
-        cell: (info) => {
-          const periodData = info.row.original.periods[period];
-          
-          if (!periodData || periodData.kontenjan === null) {
-            return <div className="text-center text-gray-400 min-w-[60px]">--</div>;
-          }
-          
-          return (
-            <div className="text-center min-w-[60px]">
-              <div className="font-medium text-blue-600 text-sm">
-                {periodData.kontenjan}
-              </div>
-              {periodData.yerlesen !== null && (
-                <div className="text-xs text-gray-500">
-                  Yerleşen: {periodData.yerlesen}
-                </div>
-              )}
+      columnHelper.accessor(
+        (row) => row.periods[period]?.kontenjan,
+        {
+          id: `kontenjan-${period}`,
+          header: () => (
+            <div className="text-center">
+              <div className="font-medium text-xs">{period}</div>
+              <div className="text-xs text-gray-500">Kontenjan</div>
             </div>
-          );
-        },
-      })
+          ),
+          cell: (info) => {
+            const periodData = info.row.original.periods[period];
+            
+            if (!periodData || periodData.kontenjan === null) {
+              return <div className="text-center text-gray-400 min-w-[60px]">--</div>;
+            }
+            
+            return (
+              <div className="text-center min-w-[60px]">
+                <div className="font-medium text-blue-600 text-sm">
+                  {periodData.kontenjan}
+                </div>
+                {periodData.yerlesen !== null && (
+                  <div className="text-xs text-gray-500">
+                    Yerleşen: {periodData.yerlesen}
+                  </div>
+                )}
+              </div>
+            );
+          },
+          sortingFn: (rowA, rowB) => {
+            const a = rowA.original.periods[period]?.kontenjan ?? -1;
+            const b = rowB.original.periods[period]?.kontenjan ?? -1;
+            return a - b;
+          },
+        }
+      )
     ),
     // Dynamic columns for each period - Taban Puan
     ...periods.map((period) =>
-      columnHelper.display({
-        id: `puan-${period}`,
-        header: () => (
-          <div className="text-center">
-            <div className="font-medium text-xs">{period}</div>
-            <div className="text-xs text-gray-500">Taban Puan</div>
-          </div>
-        ),
-        cell: (info) => {
-          const periodData = info.row.original.periods[period];
-          
-          if (!periodData || periodData.tabanPuan === null) {
-            return <div className="text-center text-gray-400 min-w-[60px]">--</div>;
-          }
-          
-          return (
-            <div className="text-center min-w-[60px]">
-              <div className="text-sm font-medium text-red-600">
-                {periodData.tabanPuan.toFixed(2)}
-              </div>
+      columnHelper.accessor(
+        (row) => row.periods[period]?.tabanPuan,
+        {
+          id: `puan-${period}`,
+          header: () => (
+            <div className="text-center">
+              <div className="font-medium text-xs">{period}</div>
+              <div className="text-xs text-gray-500">Taban Puan</div>
             </div>
-          );
-        },
-      })
+          ),
+          cell: (info) => {
+            const periodData = info.row.original.periods[period];
+            
+            if (!periodData || periodData.tabanPuan === null) {
+              return <div className="text-center text-gray-400 min-w-[60px]">--</div>;
+            }
+            
+            return (
+              <div className="text-center min-w-[60px]">
+                <div className="text-sm font-medium text-red-600">
+                  {periodData.tabanPuan.toFixed(2)}
+                </div>
+              </div>
+            );
+          },
+          sortingFn: (rowA, rowB) => {
+            const a = rowA.original.periods[period]?.tabanPuan ?? -1;
+            const b = rowB.original.periods[period]?.tabanPuan ?? -1;
+            return a - b;
+          },
+        }
+      )
     ),
     // Dynamic columns for each period - Sıralama
     ...periods.map((period) =>
-      columnHelper.display({
-        id: `siralama-${period}`,
-        header: () => (
-          <div className="text-center">
-            <div className="font-medium text-xs">{period}</div>
-            <div className="text-xs text-gray-500">Sıralama</div>
-          </div>
-        ),
-        cell: (info) => {
-          const periodData = info.row.original.periods[period];
-          
-          if (!periodData || periodData.tabanSiralamasi === null) {
-            return <div className="text-center text-gray-400 min-w-[60px]">--</div>;
-          }
-          
-          return (
-            <div className="text-center min-w-[60px]">
-              <div style={{ fontSize: '0.75rem', fontWeight: '500', color: '#000000', lineHeight: '1rem' }}>
-                {periodData.tabanSiralamasi.toLocaleString()}
-              </div>
+      columnHelper.accessor(
+        (row) => row.periods[period]?.tabanSiralamasi,
+        {
+          id: `siralama-${period}`,
+          header: () => (
+            <div className="text-center">
+              <div className="font-medium text-xs">{period}</div>
+              <div className="text-xs text-gray-500">Sıralama</div>
             </div>
-          );
-        },
-      })
+          ),
+          cell: (info) => {
+            const periodData = info.row.original.periods[period];
+            
+            if (!periodData || periodData.tabanSiralamasi === null) {
+              return <div className="text-center text-gray-400 min-w-[60px]">--</div>;
+            }
+            
+            return (
+              <div className="text-center min-w-[60px]">
+                <div style={{ fontSize: '0.75rem', fontWeight: '500', color: '#000000', lineHeight: '1rem' }}>
+                  {periodData.tabanSiralamasi.toLocaleString()}
+                </div>
+              </div>
+            );
+          },
+          sortingFn: (rowA, rowB) => {
+            const a = rowA.original.periods[period]?.tabanSiralamasi ?? Infinity;
+            const b = rowB.original.periods[period]?.tabanSiralamasi ?? Infinity;
+            return a - b;
+          },
+        }
+      )
     ),
   ];
 
@@ -372,20 +396,65 @@ export function MultiPeriodDataTable({
               <tr>
                 {/* Kontenjan periods */}
                 {periods.map((period) => (
-                  <th key={`kontenjan-${period}`} className="px-1 py-1 text-xs font-medium text-gray-700 bg-blue-50 text-center border-r border-gray-200 min-w-[60px]">
-                    {period}
+                  <th 
+                    key={`kontenjan-${period}`} 
+                    className="px-1 py-1 text-xs font-medium text-gray-700 bg-blue-50 text-center border-r border-gray-200 min-w-[60px] cursor-pointer hover:bg-blue-100"
+                    onClick={() => handleSort(`kontenjan-${period}`)}
+                  >
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>{period}</span>
+                      {sorting.find(s => s.id === `kontenjan-${period}`) ? (
+                        sorting.find(s => s.id === `kontenjan-${period}`)?.desc ? (
+                          <ChevronDownIcon className="h-3 w-3" />
+                        ) : (
+                          <ChevronUpIcon className="h-3 w-3" />
+                        )
+                      ) : (
+                        <div className="h-3 w-3" />
+                      )}
+                    </div>
                   </th>
                 ))}
                 {/* Taban Puan periods */}
                 {periods.map((period) => (
-                  <th key={`puan-${period}`} className="px-1 py-1 text-xs font-medium text-gray-700 bg-red-50 text-center border-r border-gray-200 min-w-[60px]">
-                    {period}
+                  <th 
+                    key={`puan-${period}`} 
+                    className="px-1 py-1 text-xs font-medium text-gray-700 bg-red-50 text-center border-r border-gray-200 min-w-[60px] cursor-pointer hover:bg-red-100"
+                    onClick={() => handleSort(`puan-${period}`)}
+                  >
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>{period}</span>
+                      {sorting.find(s => s.id === `puan-${period}`) ? (
+                        sorting.find(s => s.id === `puan-${period}`)?.desc ? (
+                          <ChevronDownIcon className="h-3 w-3" />
+                        ) : (
+                          <ChevronUpIcon className="h-3 w-3" />
+                        )
+                      ) : (
+                        <div className="h-3 w-3" />
+                      )}
+                    </div>
                   </th>
                 ))}
                 {/* Sıralama periods */}
                 {periods.map((period) => (
-                  <th key={`siralama-${period}`} className="px-1 py-1 text-xs font-medium text-gray-700 bg-gray-50 text-center border-r border-gray-200 min-w-[60px]">
-                    {period}
+                  <th 
+                    key={`siralama-${period}`} 
+                    className="px-1 py-1 text-xs font-medium text-gray-700 bg-gray-50 text-center border-r border-gray-200 min-w-[60px] cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort(`siralama-${period}`)}
+                  >
+                    <div className="flex items-center justify-center space-x-1">
+                      <span>{period}</span>
+                      {sorting.find(s => s.id === `siralama-${period}`) ? (
+                        sorting.find(s => s.id === `siralama-${period}`)?.desc ? (
+                          <ChevronDownIcon className="h-3 w-3" />
+                        ) : (
+                          <ChevronUpIcon className="h-3 w-3" />
+                        )
+                      ) : (
+                        <div className="h-3 w-3" />
+                      )}
+                    </div>
                   </th>
                 ))}
               </tr>
