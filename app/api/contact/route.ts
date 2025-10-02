@@ -97,9 +97,7 @@ export async function POST(request: NextRequest) {
     console.error('Contact form error:', error);
     
     if (error instanceof z.ZodError) {
-      const firstError = error.errors && error.errors.length > 0 
-        ? error.errors[0].message 
-        : 'Lütfen form alanlarını kontrol ediniz.';
+      const firstError = error.issues[0]?.message || 'Lütfen form alanlarını kontrol ediniz.';
       return Response.json(
         { error: firstError },
         { status: 400 }

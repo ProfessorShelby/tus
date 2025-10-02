@@ -41,5 +41,11 @@ next-env.d.ts
 
 # data files (security)
 /data/*.csv
+
+# local database
+local.db
+local.db-shm
+local.db-wal
+
 # Local Netlify folder
 .netlify
