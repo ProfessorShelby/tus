@@ -8,8 +8,9 @@ import { RangeFilter } from './RangeFilter';
 import { DataTable, SearchResult } from './DataTable';
 import { MultiPeriodDataTable, MultiPeriodSearchResult } from './MultiPeriodDataTable';
 import { AdsSlot } from './AdsSlot';
+import { ContactForm } from './ContactForm';
 // Remove server actions import
-import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 
 interface Facets {
   sehir: string[];
@@ -66,6 +67,7 @@ function TusSearchPageContent() {
   const [adsenseSlot, setAdsenseSlot] = useState<string>('demo');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
   
   // Set AdSense slot on client side (disabled for deployment)
   useEffect(() => {
@@ -230,6 +232,7 @@ function TusSearchPageContent() {
     newFilters.kurumTipi.forEach(k => params.append('kurumTipi', k));
     newFilters.brans.forEach(b => params.append('brans', b));
     newFilters.donem.forEach(d => params.append('donem', d));
+    newFilters.kademe.forEach(k => params.append('kademe', k));
     if (newFilters.tabanMin !== undefined) params.append('tabanMin', newFilters.tabanMin.toString());
     if (newFilters.tabanMax !== undefined) params.append('tabanMax', newFilters.tabanMax.toString());
     if (newFilters.siralamaMin !== undefined) params.append('siralamaMin', newFilters.siralamaMin.toString());
@@ -371,6 +374,12 @@ function TusSearchPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Contact Form Modal */}
+      <ContactForm 
+        isOpen={isContactFormOpen} 
+        onClose={() => setIsContactFormOpen(false)} 
+      />
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -381,18 +390,28 @@ function TusSearchPageContent() {
                 Tıpta Uzmanlık Sınavı sonuçlarını inceleyin ve tercihlerinizi planlayın
               </p>
             </div>
+            
+            {/* Contact Button */}
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              onClick={() => setIsContactFormOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
-              <AdjustmentsHorizontalIcon className="h-4 w-4 mr-2" />
-              Filtreler
+              <EnvelopeIcon className="h-5 w-5" />
+              <span className="hidden sm:inline">İletişim Formu</span>
+              <span className="sm:hidden">İletişim</span>
             </button>
           </div>
         </div>
       </header>
 
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="lg:hidden flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 mb-4"
+        >
+          <AdjustmentsHorizontalIcon className="h-4 w-4 mr-2" />
+          Filtreler
+        </button>
         {/* Filters Section - Now at the top */}
         <div className={`mb-6 ${showFilters ? 'block' : 'hidden lg:block'}`}>
           <div className="bg-white rounded-lg shadow p-6">
